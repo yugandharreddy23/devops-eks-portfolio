@@ -237,4 +237,8 @@ echo "  - aws configure          # Configure AWS credentials"
 echo "  - kubectl cluster-info   # Check cluster connection"
 echo "  - terraform init         # Initialize Terraform"
 echo "  - k9s                    # Launch Kubernetes UI"
+<<<<<<< HEAD
 echo ""
+=======
+echo ""
+>>>>>>> a49eb48 (Adding required files)
