@@ -1,22 +1,103 @@
 {
-  "name": "DevOps Portfolio",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "name": "DevOps EKS Portfolio",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  
   "features": {
-    "ghcr.io/devcontainers/features/aws-cli:1": {},
-    "ghcr.io/devcontainers/features/terraform:1": {},
-    "ghcr.io/devcontainers/features/kubectl:1": {},
-    "ghcr.io/devcontainers/features/helm:1": {}
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "username": "vscode",
+      "userUid": "automatic",
+      "userGid": "automatic"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "ppa": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "version": "latest",
+      "enableNonRootDocker": "true",
+      "moby": "true"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "nodeGypDependencies": true,
+      "version": "lts",
+      "nvmVersion": "latest"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11",
+      "installTools": true
+    }
   },
-  "postCreateCommand": "aws --version && terraform -version && kubectl version --client && helm version",
+
   "customizations": {
     "vscode": {
       "extensions": [
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
         "hashicorp.terraform",
-        "ms-azuretools.vscode-docker",
         "amazonwebservices.aws-toolkit-vscode",
-        "ms-kubernetes-tools.vscode-kubernetes-tools"
-      ]
+        "ms-vscode.vscode-docker",
+        "github.copilot",
+        "github.copilot-chat",
+        "ms-python.python",
+        "ms-python.pylint",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-vscode.powershell",
+        "github.vscode-pull-request-github"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll": true
+        },
+        "files.autoSave": "afterDelay",
+        "terraform.experimentalFeatures.validateOnSave": true,
+        "terraform.experimentalFeatures.prefillRequiredFields": true
+      }
     }
   },
-  "remoteUser": "vscode"
+
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  
+  "remoteUser": "vscode",
+  
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+
+  "forwardPorts": [3000, 8080, 9090, 3001],
+  
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend App",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Backend API",
+      "onAutoForward": "notify"
+    },
+    "9090": {
+      "label": "Monitoring",
+      "onAutoForward": "silent"
+    },
+    "3001": {
+      "label": "Dev Server",
+      "onAutoForward": "silent"
+    }
+  },
+
+  "containerEnv": {
+    "WORKSPACE_FOLDER": "${containerWorkspaceFolder}",
+    "TF_PLUGIN_CACHE_DIR": "/tmp/terraform-plugin-cache"
+  },
+
+  "runArgs": [
+    "--init"
+  ]
 }
