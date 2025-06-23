@@ -1,0 +1,24 @@
+// .devcontainer/devcontainer.json
+{
+  "name": "DevOps Portfolio",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "aws-cli": "latest",
+    "terraform": "latest",
+    "kubectl": "latest",
+    "helm": "latest",
+    "git": "latest"
+  },
+  "postCreateCommand": "aws --version && terraform -version && kubectl version --client && helm version && git --version",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "hashicorp.terraform",
+        "ms-azuretools.vscode-docker",
+        "amazonwebservices.aws-toolkit-vscode",
+        "ms-kubernetes-tools.vscode-kubernetes-tools"
+      ]
+    }
+  },
+  "remoteUser": "vscode"
+}
