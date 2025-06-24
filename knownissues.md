@@ -4,7 +4,7 @@ This document captures all the key issues encountered during the deployment of a
 
 ---
 
-## 🟠 Day 1: Cluster Setup & EKS Fargate Initialization
+## 🟠 Cluster Setup & EKS Fargate Initialization
 
 ### 1. ❌ **`nslookup` or `dig` not found in debug containers**
 
@@ -27,7 +27,7 @@ This document captures all the key issues encountered during the deployment of a
 
 ---
 
-## 🟠 Day 2: CoreDNS & Networking Issues
+## 🟠 CoreDNS & Networking Issues
 
 ### 1. ❌ **CoreDNS Pods stuck in `Pending`**
 
@@ -53,7 +53,7 @@ This document captures all the key issues encountered during the deployment of a
 
 ---
 
-## 🟠 Day 3: ArgoCD Deployment & Access
+## 🟠 ArgoCD Deployment & Access
 
 ### 1. ❌ **`argocd-server` CrashLoopBackOff**
 
