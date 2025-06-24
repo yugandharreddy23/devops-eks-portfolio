@@ -1,7 +1,7 @@
 {
   "name": "DevOps EKS Portfolio",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
-  
+
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": true,
@@ -64,15 +64,15 @@
   },
 
   "postCreateCommand": "bash .devcontainer/setup.sh",
-  
+
   "remoteUser": "vscode",
-  
+
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
 
   "forwardPorts": [3000, 8080, 9090, 3001],
-  
+
   "portsAttributes": {
     "3000": {
       "label": "Frontend App",
@@ -99,5 +99,20 @@
 
   "runArgs": [
     "--init"
-  ]
+  ],
+
+  "secrets": {
+    "AWS_ACCESS_KEY_ID": {
+      "description": "AWS Access Key ID for Terraform"
+    },
+    "AWS_SECRET_ACCESS_KEY": {
+      "description": "AWS Secret Access Key for Terraform"
+    }
+  },
+
+  "containerEnv": {
+    "WORKSPACE_FOLDER": "${containerWorkspaceFolder}",
+    "TF_PLUGIN_CACHE_DIR": "/tmp/terraform-plugin-cache",
+    "AWS_DEFAULT_REGION": "us-east-1"
+  }
 }

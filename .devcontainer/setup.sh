@@ -50,6 +50,7 @@ else
     echo "✅ Terraform already installed"
 fi
 
+
 # Install kubectl
 echo "⚓ Installing kubectl..."
 if ! command -v kubectl &> /dev/null; then
