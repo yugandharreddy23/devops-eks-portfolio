@@ -1,4 +1,4 @@
-# EKS DevOps Portfolio: Known Issues and Fixes (Day 1–3)
+# EKS DevOps Portfolio: Known Issues and Fixes
 
 This document captures all the key issues encountered during the deployment of an EKS-based DevOps portfolio project using Fargate, ArgoCD, and other cloud-native tools. It includes both the symptoms and solutions, structured for quick debugging and ease of onboarding.
 
