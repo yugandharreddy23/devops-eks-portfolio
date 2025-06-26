@@ -63,6 +63,8 @@ module "vpc" {
 
   public_subnet_tags = {
     "kubernetes.io/role/elb" = 1
+    "kubernetes.io/cluster/devops-eks-portfolio-cluster" = "shared"
+
   }
 
   private_subnet_tags = {
