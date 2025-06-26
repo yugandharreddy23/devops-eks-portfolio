@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/yugandharreddy23/devops-eks-portfolio.git
     targetRevision: main
-    path: k8s/2048-game
+    path: k8s/2048-game/2048-game
     helm:
       valueFiles:
         - values.yaml
