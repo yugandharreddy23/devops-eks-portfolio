@@ -14,4 +14,8 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: {{ .Values.fullnameOverride }}
+    app.kubernetes.io/name: 2048-game
+    app.kubernetes.io/instance: 2048-app
+
+
+
