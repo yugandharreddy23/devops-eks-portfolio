@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://prometheus-community.github.io/helm-charts
     chart: prometheus
-    targetRevision: latest # Update this to latest stable if needed
+    targetRevision: 26.0.0 # Update this to latest stable if needed
     helm:
       values: |
         alertmanager:
