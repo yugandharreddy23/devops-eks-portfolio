@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "2048-game.fullname" . }}
+  name: {{ include "app-2048-game.fullname" . }}
   labels:
-    {{- include "2048-game.labels" . | nindent 4 }}
+    {{- include "app-2048-game.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
