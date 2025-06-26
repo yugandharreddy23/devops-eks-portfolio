@@ -1,6 +1,0 @@
-service:
-  type: LoadBalancer
-
-adminPassword: "ChangeMe123"  # Warning: Do not hardcode in production
-persistence:
-  enabled: false

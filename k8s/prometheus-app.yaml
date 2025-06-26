@@ -8,10 +8,14 @@ spec:
   source:
     repoURL: https://prometheus-community.github.io/helm-charts
     chart: prometheus
-    targetRevision: 25.21.0  # You can check the latest version
+    targetRevision: 17.5.0  # Update this to latest stable if needed
     helm:
-      valueFiles:
-        - ../../prometheus/values.yaml
+      values: |
+        alertmanager:
+          enabled: false
+        server:
+          persistentVolume:
+            enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

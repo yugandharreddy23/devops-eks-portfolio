@@ -8,10 +8,14 @@ spec:
   source:
     repoURL: https://grafana.github.io/helm-charts
     chart: grafana
-    targetRevision: 6.58.7  # You can replace this with latest if needed
+    targetRevision: 6.58.7
     helm:
-      valueFiles:
-        - ../../grafana/values.yaml
+      values: |-
+        service:
+          type: LoadBalancer
+        adminPassword: "ChangeMe123"
+        persistence:
+          enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
