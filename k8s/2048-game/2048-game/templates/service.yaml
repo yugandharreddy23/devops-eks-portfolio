@@ -1,15 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "app-2048-game.fullname" . }}
+  name: {{ .Values.fullnameOverride }}
   labels:
-    {{- include "app-2048-game.labels" . | nindent 4 }}
+    app: {{ .Values.fullnameOverride }}
 spec:
-  type: {{ .Values.service.type }}
+  type: LoadBalancer
   ports:
-    - port: {{ .Values.service.port }}
+    - port: 80
       targetPort: http
       protocol: TCP
       name: http
   selector:
-    {{- include "2048-game.selectorLabels" . | nindent 4 }}
+    app: {{ .Values.fullnameOverride }}
