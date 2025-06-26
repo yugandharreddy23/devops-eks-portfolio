@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/yugandharreddy23/devops-eks-portfolio.git'
     targetRevision: main
-    path: k8s
+    path: k8s/
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default
