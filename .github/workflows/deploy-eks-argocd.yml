@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_VAR_cluster_name: devops-eks-portfolio-cluster
-      TF_VAR_region: us-west-1
+      TF_VAR_region: us-east-1
 
     steps:
       - name: Checkout Code
@@ -26,15 +26,15 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-1
+          aws-region: us-east-1
 
       - name: Create Terraform S3 Backend Bucket
         run: |
           BUCKET_NAME=terraform-backend-${{ github.run_id }}
-          aws s3api create-bucket --bucket $BUCKET_NAME --region us-west-1 --create-bucket-configuration LocationConstraint=us-west-1
+          aws s3api create-bucket --bucket $BUCKET_NAME --region us-east-1 --create-bucket-configuration LocationConstraint=us-east-1
           echo "bucket=\"$BUCKET_NAME\"" > ./terraform/backend-config.auto.tfvars
           echo "key=\"eks/terraform.tfstate\"" >> ./terraform/backend-config.auto.tfvars
-          echo "region=\"us-west-1\"" >> ./terraform/backend-config.auto.tfvars
+          echo "region=\"us-east-1\"" >> ./terraform/backend-config.auto.tfvars
 
       - name: Terraform Init with Dynamic Backend
         working-directory: ./terraform
@@ -50,7 +50,7 @@ jobs:
           version: v1.28.0
 
       - name: Update kubeconfig
-        run: aws eks update-kubeconfig --region us-west-1 --name devops-eks-portfolio-cluster
+        run: aws eks update-kubeconfig --region us-east-1 --name devops-eks-portfolio-cluster
 
       - name: Install Argo CD
         run: |
