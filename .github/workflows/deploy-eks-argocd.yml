@@ -1,0 +1,91 @@
+name: deploy-eks-argocd
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_cluster_name: devops-eks-portfolio-cluster
+      TF_VAR_region: us-west-1
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1
+
+      - name: Create Terraform S3 Backend Bucket
+        run: |
+          BUCKET_NAME=terraform-backend-${{ github.run_id }}
+          aws s3api create-bucket --bucket $BUCKET_NAME --region us-west-1 --create-bucket-configuration LocationConstraint=us-west-1
+          echo "bucket=\"$BUCKET_NAME\"" > ./terraform/backend-config.auto.tfvars
+          echo "key=\"eks/terraform.tfstate\"" >> ./terraform/backend-config.auto.tfvars
+          echo "region=\"us-west-1\"" >> ./terraform/backend-config.auto.tfvars
+
+      - name: Terraform Init with Dynamic Backend
+        working-directory: ./terraform
+        run: terraform init -backend-config=backend-config.auto.tfvars
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.28.0
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region us-west-1 --name devops-eks-portfolio-cluster
+
+      - name: Install Argo CD
+        run: |
+          kubectl create namespace argocd || true
+          kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+          echo "Waiting for Argo CD server to be ready..."
+          kubectl wait --for=condition=available --timeout=600s deployment/argocd-server -n argocd
+
+      - name: Expose Argo CD via LoadBalancer
+        run: |
+          kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+
+      - name: Deploy Argo CD Bootstrap App
+        run: kubectl apply -f k8s/argocd/bootstrap-apps.yaml -n argocd
+
+      - name: Wait for All ArgoCD Applications to Sync
+        run: |
+          sleep 30
+          kubectl wait --for=condition=Available --timeout=300s deployment -l app.kubernetes.io/part-of=argocd -n argocd || true
+
+      - name: Wait for LoadBalancer IPs
+        run: |
+          echo "Waiting for LoadBalancers to be assigned..."
+          for svc in argocd-server grafana-app game-2048; do
+            echo "Waiting for $svc..."
+            until kubectl get svc $svc -A -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}' 2>/dev/null | grep -q .; do sleep 10; done
+          done
+
+      - name: Display Public Endpoints
+        run: |
+          echo "🔹 Argo CD: https://$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+          echo "🔹 Grafana: http://$(kubectl get svc grafana-app -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+          echo "🔹 2048 App: http://$(kubectl get svc game-2048 -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+
+      - name: Output Service Hostnames (Optional)
+        run: |
+          echo "Fetching LoadBalancer endpoints..."
+          kubectl get svc -A | grep LoadBalancer || true

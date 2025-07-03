@@ -1,6 +1,6 @@
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "19.21.0"
+  version = "20.8.5"
 
   cluster_name                   = local.name
   cluster_endpoint_public_access = true
@@ -26,16 +26,15 @@ module "eks" {
     ami_type       = "BOTTLEROCKET_x86_64"
     instance_types = ["m5.large"]
 
-    attach_cluster_primary_security_group = true
   }
 
   eks_managed_node_groups = {
-    amc-cluster-wg = {
+    devops-eks-cluster = {
       min_size     = 1
       max_size     = 2
       desired_size = 1
 
-      instance_types = ["t3.large"]
+      instance_types = ["t3.medium"]
       capacity_type  = "SPOT"
 
       tags = {
@@ -46,6 +45,7 @@ module "eks" {
 
   tags = local.tags
 }
+
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
