@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_VAR_cluster_name: devops-eks-portfolio-cluster
-      TF_VAR_region: us-west-1
+      TF_VAR_region: ${{ secrets.TF_BACKEND_REGION }}
 
     steps:
       - name: Checkout Code
@@ -26,19 +26,15 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-1
+          aws-region: ${{ secrets.TF_BACKEND_REGION }}
 
-      - name: Create Terraform S3 Backend Bucket
-        run: |
-          BUCKET_NAME=terraform-backend-${{ github.run_id }}
-          aws s3api create-bucket --bucket $BUCKET_NAME --region us-west-1 --create-bucket-configuration LocationConstraint=us-west-1
-          echo "bucket=\"$BUCKET_NAME\"" > ./terraform/backend-config.auto.tfvars
-          echo "key=\"eks/terraform.tfstate\"" >> ./terraform/backend-config.auto.tfvars
-          echo "region=\"us-west-1\"" >> ./terraform/backend-config.auto.tfvars
-
-      - name: Terraform Init with Dynamic Backend
+      - name: Terraform Init with S3 Backend
         working-directory: ./terraform
-        run: terraform init -backend-config=backend-config.auto.tfvars
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
+            -backend-config="key=eks/terraform.tfstate" \
+            -backend-config="region=${{ secrets.TF_BACKEND_REGION }}"
 
       - name: Terraform Apply
         working-directory: ./terraform
