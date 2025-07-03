@@ -26,9 +26,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1
 
+      - name: Recreate Terraform Backend Config
+        run: |
+          BUCKET_NAME=terraform-backend-${{ github.run_id }}
+          echo "bucket=\"$BUCKET_NAME\"" > ./terraform/backend-config.auto.tfvars
+          echo "key=\"eks/terraform.tfstate\"" >> ./terraform/backend-config.auto.tfvars
+          echo "region=\"us-west-1\"" >> ./terraform/backend-config.auto.tfvars
+
       - name: Terraform Init with Dynamic Backend
         working-directory: ./terraform
         run: terraform init -backend-config=backend-config.auto.tfvars
+
 
       - name: Terraform Destroy
         working-directory: ./terraform
