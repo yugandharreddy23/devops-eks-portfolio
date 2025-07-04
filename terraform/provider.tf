@@ -5,6 +5,8 @@ terraform {
       version = "~> 5.40.0"
     }
   }
+
+  backend "s3" {}
 }
 
 locals {
@@ -21,5 +23,5 @@ locals {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = local.region
 }
