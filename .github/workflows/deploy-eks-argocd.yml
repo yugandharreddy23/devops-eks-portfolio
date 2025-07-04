@@ -20,6 +20,11 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.7
+      
+      - name: Print GitHub Context
+        run: |
+          echo "GITHUB_REPOSITORY=${{ github.repository }}"
+          echo "GITHUB_REF=${{ github.ref }}"
 
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v2
