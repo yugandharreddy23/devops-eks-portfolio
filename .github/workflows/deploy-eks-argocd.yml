@@ -46,7 +46,32 @@ jobs:
           version: v1.28.0
 
       - name: Update kubeconfig
-        run: aws eks update-kubeconfig --region us-east-1 --name devops-eks-portfolio-cluster
+        run: aws eks update-kubeconfig --region ${{ secrets.TF_BACKEND_REGION }} --name devops-eks-portfolio-cluster
+
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
+      - name: Patch aws-auth ConfigMap for GitHub Actions access
+        run: |
+          cat <<EOF > aws-auth-patch.yaml
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: aws-auth
+            namespace: kube-system
+          data:
+            mapRoles: |
+              - rolearn: ${{ secrets.GITHUB_ROLE_ARN }}
+                username: github-actions
+                groups:
+                  - system:masters
+          EOF
+
+          kubectl get configmap aws-auth -n kube-system -o yaml > aws-auth-original.yaml
+          yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' aws-auth-original.yaml aws-auth-patch.yaml > aws-auth-merged.yaml
+          kubectl apply -f aws-auth-merged.yaml
 
       - name: Install Argo CD
         run: |
