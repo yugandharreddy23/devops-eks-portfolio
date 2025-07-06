@@ -36,10 +36,16 @@ module "eks" {
       }
     }
   }
+  tags = local.tags
+}
 
-  manage_aws_auth = true
+module "eks_aws_auth" {
+  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
+  version = "20.8.5"
 
-  aws_auth_roles = [
+  cluster_name = module.eks.cluster_name
+
+  map_roles = [
     {
       rolearn  = var.github_actions_role_arn
       username = "github-actions"
@@ -47,15 +53,13 @@ module "eks" {
     }
   ]
 
-  aws_auth_users = [
+  map_users = [
     {
       userarn  = data.aws_caller_identity.current.arn
       username = "admin"
       groups   = ["system:masters"]
     }
   ]
-
-  tags = local.tags
 }
 
 module "vpc" {
