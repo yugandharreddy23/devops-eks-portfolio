@@ -1,6 +1,25 @@
 # Get current AWS caller identity
 data "aws_caller_identity" "current" {}
 
+data "aws_eks_cluster_auth" "this" {
+  name = module.eks.cluster_name
+}
+
+# Configure the Kubernetes provider to connect to the newly created EKS cluster
+# This configuration relies on outputs from the EKS module and the aws_eks_cluster_auth data source
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.this.token
+
+  # Set a short timeout if you're frequently hitting issues, but default is usually fine
+  # exec {
+  #   api_version = "client.authentication.k8s.io/v1beta1"
+  #   command     = "aws"
+  #   args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", local.region]
+  # }
+}
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.8.5"
@@ -47,53 +66,33 @@ module "eks" {
 
   tags = local.tags
 }
-
-resource "null_resource" "aws_auth" {
-  depends_on = [module.eks]
-
-  provisioner "local-exec" {
-    # It's crucial that the AWS CLI and kubectl are properly installed and configured
-    # in the environment where Terraform is executed.
-    # The aws eks update-kubeconfig command automatically configures kubectl
-    # to use the aws-iam-authenticator for EKS cluster authentication.
-
-    command = <<-EOT
-      # Update kubeconfig to point to the new EKS cluster
-      aws eks update-kubeconfig --region ${local.region} --name ${module.eks.cluster_name}
-
-      # Ensure kubectl has the correct context and credentials are picked up.
-      # Adding a short sleep can sometimes help in CI environments, though ideally not needed.
-      # sleep 5 
-
-      # Create aws-auth ConfigMap
-      # The '--validate=false' is added as a temporary measure to bypass OpenAPI validation
-      # if the client is having issues fetching schemas, as per the error message.
-      # This should be removed once the underlying authentication/network issue is resolved.
-      kubectl apply --validate=false -f - <<KUBECONFIG_EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: aws-auth
-  namespace: kube-system
-data:
-  mapRoles: |
-    - rolearn: ${var.github_actions_role_arn}
-      username: github-actions
-      groups:
-        - system:masters
-  mapUsers: |
-    - userarn: ${data.aws_caller_identity.current.arn}
-      username: admin
-      groups:
-        - system:masters
-KUBECONFIG_EOF
+# **NEW:** Manage aws-auth ConfigMap directly with Kubernetes provider
+# This replaces the entire null_resource.aws_auth block
+resource "kubernetes_config_map" "aws_auth" {
+  metadata {
+    name      = "aws-auth"
+    namespace = "kube-system"
+  }
+  data = {
+    mapRoles = <<-EOT
+      - rolearn: ${var.github_actions_role_arn}
+        username: github-actions
+        groups:
+          - system:masters
+    EOT
+    mapUsers = <<-EOT
+      - userarn: ${data.aws_caller_identity.current.arn}
+        username: admin
+        groups:
+          - system:masters
     EOT
   }
 
-  triggers = {
-    cluster_name = module.eks.cluster_name
-    github_role  = var.github_actions_role_arn
-  }
+  # Ensure this resource is created only after the EKS cluster is fully
+  # provisioned and the Kubernetes provider can successfully authenticate.
+  depends_on = [
+    module.eks # Ensures EKS cluster is ready
+  ]
 }
 
 module "vpc" {
