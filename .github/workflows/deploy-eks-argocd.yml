@@ -32,45 +32,28 @@ jobs:
           echo "GITHUB_REPOSITORY=${{ github.repository }}"
           echo "GITHUB_REF=${{ github.ref }}"
 
-      - name: Configure AWS Credentials via OIDC
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.GITHUB_ROLE_ARN }}
-          aws-region: ${{ secrets.TF_BACKEND_REGION }}
-          role-session-name: github-actions-session
-          role-duration-seconds: 3600
-        continue-on-error: true
-        id: oidc_auth
-
       - name: Configure AWS Credentials via Access Keys
-        if: steps.oidc_auth.outcome == 'failure'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.TF_BACKEND_REGION }}
 
-      - name: Verify AWS Credentials
-        run: |
-          echo "Testing AWS credentials..."
-          aws sts get-caller-identity
-          echo "AWS credentials are working!"
-
       - name: Terraform Init with S3 Backend
         working-directory: ./terraform
         run: |
-          terraform init --upgrade\
+          terraform init \
             -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
             -backend-config="key=eks/terraform.tfstate" \
             -backend-config="region=${{ secrets.TF_BACKEND_REGION }}"
 
       - name: Terraform Plan
         working-directory: ./terraform
-        run: terraform plan -var="github_actions_role_arn=${{ secrets.GITHUB_ROLE_ARN }}"
+        run: terraform plan
 
       - name: Terraform Apply
         working-directory: ./terraform
-        run: terraform apply -auto-approve -var="github_actions_role_arn=${{ secrets.GITHUB_ROLE_ARN }}"
+        run: terraform apply -auto-approve
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
@@ -118,6 +101,8 @@ jobs:
           echo "🔹 Argo CD: https://$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' || echo 'Not ready')"
           echo "🔹 Grafana: http://$(kubectl get svc grafana-app -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' || echo 'Not ready')"
           echo "🔹 2048 App: http://$(kubectl get svc game-2048 -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' || echo 'Not ready')"
+          echo "🔐 Argo CD Admin Password:"
+          kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
 
       - name: Output Service Hostnames (Optional)
         run: |
