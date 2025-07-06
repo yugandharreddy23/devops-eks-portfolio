@@ -5,7 +5,7 @@ on:
     branches:
       - main
 
-# Add these permissions for OIDC
+# Required permissions for OIDC
 permissions:
   id-token: write
   contents: read
@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -31,13 +31,32 @@ jobs:
           echo "GITHUB_REPOSITORY=${{ github.repository }}"
           echo "GITHUB_REF=${{ github.ref }}"
 
+      # Try OIDC first, fallback to access keys
       - name: Configure AWS Credentials via OIDC
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.GITHUB_ROLE_ARN }}
           aws-region: ${{ secrets.TF_BACKEND_REGION }}
-          # Add role session name for better tracking
           role-session-name: github-actions-session
+          role-duration-seconds: 3600
+        continue-on-error: true
+        id: oidc_auth
+
+      # Fallback to access keys if OIDC fails
+      - name: Configure AWS Credentials via Access Keys
+        if: steps.oidc_auth.outcome == 'failure'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.TF_BACKEND_REGION }}
+
+      # Verify AWS credentials are working
+      - name: Verify AWS Credentials
+        run: |
+          echo "Testing AWS credentials..."
+          aws sts get-caller-identity
+          echo "AWS credentials are working!"
 
       - name: Terraform Init with S3 Backend
         working-directory: ./terraform
@@ -46,6 +65,10 @@ jobs:
             -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
             -backend-config="key=eks/terraform.tfstate" \
             -backend-config="region=${{ secrets.TF_BACKEND_REGION }}"
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: terraform plan
 
       - name: Terraform Apply
         working-directory: ./terraform
@@ -59,6 +82,11 @@ jobs:
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --region ${{ secrets.TF_BACKEND_REGION }} --name devops-eks-portfolio-cluster
 
+      - name: Verify kubectl connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
       - name: Install yq
         run: |
           sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
@@ -66,6 +94,10 @@ jobs:
 
       - name: Patch aws-auth ConfigMap for GitHub Actions access
         run: |
+          # Get current aws-auth configmap
+          kubectl get configmap aws-auth -n kube-system -o yaml > aws-auth-original.yaml
+          
+          # Create patch for GitHub Actions role
           cat <<EOF > aws-auth-patch.yaml
           apiVersion: v1
           kind: ConfigMap
@@ -80,9 +112,14 @@ jobs:
                   - system:masters
           EOF
 
-          kubectl get configmap aws-auth -n kube-system -o yaml > aws-auth-original.yaml
+          # Merge the configurations
           yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' aws-auth-original.yaml aws-auth-patch.yaml > aws-auth-merged.yaml
+          
+          # Apply the merged configuration
           kubectl apply -f aws-auth-merged.yaml
+          
+          # Verify the update
+          kubectl get configmap aws-auth -n kube-system -o yaml
 
       - name: Install Argo CD
         run: |
@@ -108,14 +145,14 @@ jobs:
           echo "Waiting for LoadBalancers to be assigned..."
           for svc in argocd-server grafana-app game-2048; do
             echo "Waiting for $svc..."
-            until kubectl get svc $svc -A -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}' 2>/dev/null | grep -q .; do sleep 10; done
+            timeout 300 bash -c "until kubectl get svc $svc -A -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}' 2>/dev/null | grep -q .; do sleep 10; done" || echo "Timeout waiting for $svc"
           done
 
       - name: Display Public Endpoints
         run: |
-          echo "🔹 Argo CD: https://$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
-          echo "🔹 Grafana: http://$(kubectl get svc grafana-app -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
-          echo "🔹 2048 App: http://$(kubectl get svc game-2048 -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+          echo "🔹 Argo CD: https://$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' || echo 'Not ready')"
+          echo "🔹 Grafana: http://$(kubectl get svc grafana-app -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' || echo 'Not ready')"
+          echo "🔹 2048 App: http://$(kubectl get svc game-2048 -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' || echo 'Not ready')"
 
       - name: Output Service Hostnames (Optional)
         run: |
