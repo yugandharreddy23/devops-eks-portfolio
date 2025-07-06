@@ -99,7 +99,8 @@ Once the pipeline completes, GitHub Actions will automatically print the default
 
 ### Access Argo CD UI:
 
-* Get the public endpoint:
+* Get the public endpoint from the CI outputs or 
+* From your local terminal using the below command once it is successfully configured using the test and validate section below:
 
   ```bash
   kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
