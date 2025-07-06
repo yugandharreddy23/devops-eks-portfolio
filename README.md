@@ -186,7 +186,6 @@ The following automation is already configured in the GitHub Actions workflow:
 ## 📌 Notes
 
 * Cluster will fail if `enable_cluster_creator_admin_permissions = false`
-* The `aws-auth` patch step is critical to allow GitHub Actions to run `kubectl`
 * Terraform stores state in S3 — ensure S3 bucket exists before running the pipeline
 
 ---
