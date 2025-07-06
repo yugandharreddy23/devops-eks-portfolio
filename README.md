@@ -67,7 +67,7 @@ A cloud-native DevOps portfolio project using GitOps, EKS, and CI/CD automation
 1. Go to **IAM > Roles** and click **Create role**
 2. Select **Web Identity**
 3. Choose **GitHub** as the provider
-4. Set your **GitHub Repo or Org name** (e.g., `yugandharreddy23/devops-eks-portfolio`)
+4. Set your **GitHub Repo or Org name** (e.g., `your_username/devops-eks-portfolio`)
 5. Add required IAM policies (e.g., AdministratorAccess or scoped EKS/VPC permissions)
 6. Save the **Role ARN**, and store it as `GITHUB_ROLE_ARN` in your GitHub repo secrets
 
