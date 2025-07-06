@@ -48,30 +48,40 @@ module "eks" {
   tags = local.tags
 }
 
-# Separate aws-auth management using the submodule
-module "eks_auth" {
-  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
-  version = "20.8.5"
-
-  manage_aws_auth_configmap = true
-
-  aws_auth_roles = [
-    {
-      rolearn  = var.github_actions_role_arn
-      username = "github-actions"
-      groups   = ["system:masters"]
-    }
-  ]
-
-  aws_auth_users = [
-    {
-      userarn  = data.aws_caller_identity.current.arn
-      username = "admin"
-      groups   = ["system:masters"]
-    }
-  ]
-
+resource "null_resource" "aws_auth" {
   depends_on = [module.eks]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      # Update kubeconfig
+      aws eks update-kubeconfig --region ${local.region} --name ${module.eks.cluster_name}
+      
+      # Create aws-auth ConfigMap
+      kubectl apply -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapRoles: |
+    - rolearn: ${var.github_actions_role_arn}
+      username: github-actions
+      groups:
+        - system:masters
+  mapUsers: |
+    - userarn: ${data.aws_caller_identity.current.arn}
+      username: admin
+      groups:
+        - system:masters
+EOF
+    EOT
+  }
+
+  triggers = {
+    cluster_name = module.eks.cluster_name
+    github_role  = var.github_actions_role_arn
+  }
 }
 
 module "vpc" {

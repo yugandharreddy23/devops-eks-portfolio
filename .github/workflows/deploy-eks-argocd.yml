@@ -68,11 +68,11 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ./terraform
-        run: terraform plan
+        run: terraform plan -var="github_role_arn=${{ secrets.GITHUB_ROLE_ARN }}"
 
       - name: Terraform Apply
         working-directory: ./terraform
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve -var="github_role_arn=${{ secrets.GITHUB_ROLE_ARN }}"
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
@@ -84,42 +84,9 @@ jobs:
 
       - name: Verify kubectl connection
         run: |
+          echo "Testing kubectl connection..."
           kubectl cluster-info
           kubectl get nodes
-
-      - name: Install yq
-        run: |
-          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
-          sudo chmod +x /usr/bin/yq
-
-      - name: Patch aws-auth ConfigMap for GitHub Actions access
-        run: |
-          # Get current aws-auth configmap
-          kubectl get configmap aws-auth -n kube-system -o yaml > aws-auth-original.yaml
-          
-          # Create patch for GitHub Actions role
-          cat <<EOF > aws-auth-patch.yaml
-          apiVersion: v1
-          kind: ConfigMap
-          metadata:
-            name: aws-auth
-            namespace: kube-system
-          data:
-            mapRoles: |
-              - rolearn: ${{ secrets.GITHUB_ROLE_ARN }}
-                username: github-actions
-                groups:
-                  - system:masters
-          EOF
-
-          # Merge the configurations
-          yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' aws-auth-original.yaml aws-auth-patch.yaml > aws-auth-merged.yaml
-          
-          # Apply the merged configuration
-          kubectl apply -f aws-auth-merged.yaml
-          
-          # Verify the update
-          kubectl get configmap aws-auth -n kube-system -o yaml
 
       - name: Install Argo CD
         run: |
