@@ -196,7 +196,7 @@ MIT License — Free to use, share, modify.
 
 ---
 
-For advanced troubleshooting and known issues, refer to [`KNOWN_ISSUES.md`](./knownissues.md)
+For advanced troubleshooting and known issues, refer to [`KNOWN_ISSUES.md`](./docs/knownissues.md)
 
 ---
 
