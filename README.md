@@ -51,7 +51,6 @@ A cloud-native DevOps portfolio project using GitOps, EKS, and CI/CD automation
   * `TF_BACKEND_REGION` — Region of your deployment (e.g., `us-east-1`)
   * `GITHUB_ROLE_ARN` — IAM Role ARN with GitHub OIDC trust policy and admin permissions
 
-> ⚠️ Important: Ensure the IAM Role created in AWS has `enable_cluster_creator_admin_permissions = true` in your Terraform EKS module.
 ---
 ## 🏗️ Architecture Overview
 
@@ -195,12 +194,13 @@ The following automation is already configured in the GitHub Actions workflow:
 
 * Cluster will fail if `enable_cluster_creator_admin_permissions = false`
 * Terraform stores state in S3 — ensure S3 bucket exists before running the pipeline
+* Ensure the IAM Role created in AWS has `enable_cluster_creator_admin_permissions = true` in your Terraform EKS module.
 
 ---
 
 ## 📄 Licensing
 
-MIT License — Free to use, share, modify.
+MIT License — Free to use and share.
 
 ---
 
