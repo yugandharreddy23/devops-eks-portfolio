@@ -1,0 +1,54 @@
+# Ignore Terraform-related files
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/crash.log
+.terraform/**
+
+# Ignore misc files
+misc_files/**
+
+# Ignore .devcontainer files
+.devcontainer/
+
+# Ignore variable files with secrets (if used)
+terraform/*.tfvars
+terraform/*.tfvars.json
+
+# Ignore Kubernetes secret files or generated YAMLs (if any)
+k8s/**/*.secret.yaml
+k8s/*.generated.yaml
+
+# Ignore Helm chart build output
+k8s/**/charts/
+k8s/**/Chart.lock
+k8s/**/values*.local.yaml
+
+# Ignore logs, temp files
+*.log
+*.tmp
+*.swp
+*.bak
+*.out
+
+# Ignore MacOS and system files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE/editor settings
+.vscode/
+.idea/
+*.code-workspace
+
+# Ignore local shell scripts or temp dev files (optional)
+destroy_vpc.sh
+
+# Ignore Python cache (if scripting used)
+__pycache__/
+*.py[cod]
+
+# Ignore GitHub Actions runner temp directories (local only)
+.github/workflows/*.bak
+.github/*.DS_Store
+.gitignore
