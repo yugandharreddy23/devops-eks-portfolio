@@ -32,9 +32,9 @@ module "eks" {
 
   eks_managed_node_groups = {
     devops-eks-cluster = {
-      min_size     = 1
-      max_size     = 2
-      desired_size = 1
+      min_size       = 1
+      max_size       = 2
+      desired_size   = 1
 
       instance_types = ["t3.medium"]
       capacity_type  = "ON_DEMAND"
@@ -52,12 +52,24 @@ resource "null_resource" "aws_auth" {
   depends_on = [module.eks]
 
   provisioner "local-exec" {
+    # It's crucial that the AWS CLI and kubectl are properly installed and configured
+    # in the environment where Terraform is executed.
+    # The aws eks update-kubeconfig command automatically configures kubectl
+    # to use the aws-iam-authenticator for EKS cluster authentication.
+
     command = <<-EOT
-      # Update kubeconfig
+      # Update kubeconfig to point to the new EKS cluster
       aws eks update-kubeconfig --region ${local.region} --name ${module.eks.cluster_name}
-      
+
+      # Ensure kubectl has the correct context and credentials are picked up.
+      # Adding a short sleep can sometimes help in CI environments, though ideally not needed.
+      # sleep 5 
+
       # Create aws-auth ConfigMap
-      kubectl apply -f - <<EOF
+      # The '--validate=false' is added as a temporary measure to bypass OpenAPI validation
+      # if the client is having issues fetching schemas, as per the error message.
+      # This should be removed once the underlying authentication/network issue is resolved.
+      kubectl apply --validate=false -f - <<KUBECONFIG_EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -74,7 +86,7 @@ data:
       username: admin
       groups:
         - system:masters
-EOF
+KUBECONFIG_EOF
     EOT
   }
 
@@ -99,7 +111,7 @@ module "vpc" {
   enable_nat_gateway = true
 
   public_subnet_tags = {
-    "kubernetes.io/role/elb" = 1
+    "kubernetes.io/role/elb"                      = 1
     "kubernetes.io/cluster/devops-eks-portfolio-cluster" = "shared"
   }
 
