@@ -106,7 +106,7 @@ This document captures all the key issues encountered during the deployment of a
     kubectl -n argocd patch secret argocd-secret \
       -p '{"stringData": {"admin.password": "$2y$...", "admin.passwordMtime": "2025-06-24T00:00:00Z"}}'
     ```
-## ⚙️ Terraform & AWS Integration
+## 🟠  Terraform & AWS Integration
 
 ### 1. ❌ `InvalidLocationConstraint` when creating S3 bucket
 
