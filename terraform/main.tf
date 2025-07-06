@@ -43,9 +43,9 @@ module "eks_aws_auth" {
   source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
   version = "20.8.5"
 
-  cluster_name = module.eks.cluster_name
+  manage_aws_auth_configmap = true
 
-  map_roles = [
+  aws_auth_roles = [
     {
       rolearn  = var.github_actions_role_arn
       username = "github-actions"
@@ -53,7 +53,7 @@ module "eks_aws_auth" {
     }
   ]
 
-  map_users = [
+  aws_auth_users = [
     {
       userarn  = data.aws_caller_identity.current.arn
       username = "admin"
