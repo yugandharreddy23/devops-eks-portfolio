@@ -57,7 +57,7 @@ A cloud-native DevOps portfolio project using GitOps, EKS, and CI/CD automation
 
 ![DevOps EKS Portfolio Architecture](./docs/eks_gitops_architecture.png)
 
-*Complete GitOps architecture showing EKS cluster, ArgoCD, and deployed applications*
+***Complete GitOps architecture showing EKS cluster, ArgoCD, and deployed applications***
 ---
 
 ## 🚀 How to Use This Repository
