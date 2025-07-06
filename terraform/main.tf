@@ -7,27 +7,6 @@ module "eks" {
 
   cluster_name                   = local.name
   cluster_endpoint_public_access = true
-  
-  # Enable aws-auth ConfigMap management
-  manage_aws_auth_configmap = true
-  
-  # AWS auth roles configuration
-  aws_auth_roles = [
-    {
-      rolearn  = var.github_actions_role_arn
-      username = "github-actions"
-      groups   = ["system:masters"]
-    }
-  ]
-  
-  # AWS auth users configuration (optional - adds current user as admin)
-  aws_auth_users = [
-    {
-      userarn  = data.aws_caller_identity.current.arn
-      username = "admin"
-      groups   = ["system:masters"]
-    }
-  ]
 
   cluster_addons = {
     coredns = {
@@ -67,6 +46,32 @@ module "eks" {
   }
 
   tags = local.tags
+}
+
+# Separate aws-auth management using the submodule
+module "eks_auth" {
+  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
+  version = "20.8.5"
+
+  manage_aws_auth_configmap = true
+
+  aws_auth_roles = [
+    {
+      rolearn  = var.github_actions_role_arn
+      username = "github-actions"
+      groups   = ["system:masters"]
+    }
+  ]
+
+  aws_auth_users = [
+    {
+      userarn  = data.aws_caller_identity.current.arn
+      username = "admin"
+      groups   = ["system:masters"]
+    }
+  ]
+
+  depends_on = [module.eks]
 }
 
 module "vpc" {
