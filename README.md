@@ -2,12 +2,6 @@
 A cloud-native DevOps portfolio project using GitOps, EKS, and CI/CD automation
 ---
 
-## 🏗️ Architecture Overview
-
-![DevOps EKS Portfolio Architecture](./eks_gitops_architecture.png)
-
-*Complete GitOps architecture showing EKS cluster, ArgoCD, and deployed applications*
-
 ## 📁 Repository Structure
 
 ```bash
@@ -59,8 +53,11 @@ A cloud-native DevOps portfolio project using GitOps, EKS, and CI/CD automation
 
 > ⚠️ Important: Ensure the IAM Role created in AWS has `enable_cluster_creator_admin_permissions = true` in your Terraform EKS module.
 ---
-## Architecture
-![2048 Game Deployment on EKS - GitOps Architecture](./docs/eks_gitops_architecture.png)
+## 🏗️ Architecture Overview
+
+![DevOps EKS Portfolio Architecture](./docs/eks_gitops_architecture.png)
+
+*Complete GitOps architecture showing EKS cluster, ArgoCD, and deployed applications*
 ---
 
 ## 🚀 How to Use This Repository
