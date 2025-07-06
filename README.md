@@ -53,8 +53,7 @@ A cloud-native DevOps portfolio project using GitOps, EKS, and CI/CD automation
 
 > ⚠️ Important: Ensure the IAM Role created in AWS has `enable_cluster_creator_admin_permissions = true` in your Terraform EKS module.
 ---
-![2048 Game Deployment on EKS - GitOps Architecture]
-(./docs/eks_gitops_architecture.png)
+![2048 Game Deployment on EKS - GitOps Architecture](./docs/eks_gitops_architecture.png)
 ---
 
 ## 🚀 How to Use This Repository
