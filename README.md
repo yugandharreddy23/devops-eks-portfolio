@@ -97,8 +97,9 @@ Commit any changes to the `main` branch or push it — GitHub Actions will:
 2. Install Argo CD
 3. Deploy sample apps (Grafana, 2048 game) using Argo CD GitOps
 4. Output public endpoints and Argo CD admin password
-> ⚠️ Important: Region name will be masked in the endpoints generated. Replace it with the region where your resources are deployed for eg. replace the url(https://adb0787fcc514455e95d95a6e53.***.elb.amazonaws.com) with region name us-east-1 as "https://adb0787fcc514455e95d95a6e53.us-east-1.elb.amazonaws.com"
-
+> ⚠️ Note: The region name in the generated endpoint URLs is masked by Git (e.g., https://adb0787fcc514455e95d95a6e53.***.elb.amazonaws.com).
+Please replace *** with your actual AWS region — for example, if your region is us-east-1, the corrected URL would be:
+https://adb0787fcc514455e95d95a6e53.us-east-1.elb.amazonaws.com.
 ---
 
 ## 🔐 Argo CD Access
