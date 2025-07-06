@@ -91,10 +91,17 @@ jobs:
       - name: Wait for LoadBalancer IPs
         run: |
           echo "Waiting for LoadBalancers to be assigned..."
-          for svc in argocd-server grafana-app game-2048; do
-            echo "Waiting for $svc..."
-            timeout 300 bash -c "until kubectl get svc $svc -A -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}' 2>/dev/null | grep -q .; do sleep 10; done" || echo "Timeout waiting for $svc"
+          declare -A svc_namespaces
+          svc_namespaces[argocd-server]="argocd"
+          svc_namespaces[grafana-app]="monitoring"
+          svc_namespaces[game-2048]="default"
+              
+          for svc in "${!svc_namespaces[@]}"; do
+            ns="${svc_namespaces[$svc]}"
+            echo "Waiting for $svc in namespace $ns..."
+            timeout 300 bash -c "until kubectl get svc $svc -n $ns -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null | grep -q .; do sleep 10; done" || echo "⏳ Timeout waiting for $svc"
           done
+
 
       - name: Display Public Endpoints
         run: |
