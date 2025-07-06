@@ -1,4 +1,4 @@
-### 📦 DevOps EKS Portfolio: Automated Deployment with Argo CD
+# 📦 DevOps EKS Portfolio: Automated Deployment with Argo CD
 A cloud-native DevOps portfolio project using GitOps, EKS, and CI/CD automation
 ---
 
