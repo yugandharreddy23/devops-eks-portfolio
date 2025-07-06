@@ -60,6 +60,7 @@ module "eks_aws_auth" {
       groups   = ["system:masters"]
     }
   ]
+  depends_on = [module.eks]
 }
 
 module "vpc" {
