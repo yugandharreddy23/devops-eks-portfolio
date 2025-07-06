@@ -5,4 +5,4 @@ This document provides a comprehensive view of the DevOps EKS Portfolio architec
 
 ## 🎨 Complete Architecture Diagram
 
-![DevOps EKS Portfolio - GitOps Architecture](./docs/devops-eks-portfolio-high-level-arch.png)
+![DevOps EKS Portfolio - GitOps Architecture](./devops-eks-portfolio-high-level-arch.png)
