@@ -4,10 +4,12 @@ data "aws_caller_identity" "current" {}
 
 data "aws_eks_cluster" "this" {
   name = module.eks.cluster_name
+  depends_on = [module.eks]
 }
 
 data "aws_eks_cluster_auth" "this" {
   name = module.eks.cluster_name
+  depends_on = [module.eks]
 }
 
 
@@ -49,29 +51,6 @@ module "eks" {
   tags = local.tags
 }
 
-#module "eks_aws_auth" {
-#  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
-#  version = "20.8.5"
-#
-#  manage_aws_auth_configmap = true
-#
-#  aws_auth_roles = [
-#    {
-#      rolearn  = var.github_actions_role_arn
-#      username = "github-actions"
-#      groups   = ["system:masters"]
-#    }
-#  ]
-#
-#  aws_auth_users = [
-#    {
-#      userarn  = data.aws_caller_identity.current.arn
-#      username = "admin"
-#      groups   = ["system:masters"]
-#    }
-#  ]
-#  depends_on = [module.eks]
-#}
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
