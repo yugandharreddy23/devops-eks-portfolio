@@ -1,9 +1,33 @@
+# Get current AWS caller identity
+data "aws_caller_identity" "current" {}
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.8.5"
 
   cluster_name                   = local.name
   cluster_endpoint_public_access = true
+  
+  # Enable aws-auth ConfigMap management
+  manage_aws_auth_configmap = true
+  
+  # AWS auth roles configuration
+  aws_auth_roles = [
+    {
+      rolearn  = var.github_actions_role_arn
+      username = "github-actions"
+      groups   = ["system:masters"]
+    }
+  ]
+  
+  # AWS auth users configuration (optional - adds current user as admin)
+  aws_auth_users = [
+    {
+      userarn  = data.aws_caller_identity.current.arn
+      username = "admin"
+      groups   = ["system:masters"]
+    }
+  ]
 
   cluster_addons = {
     coredns = {
@@ -25,7 +49,6 @@ module "eks" {
   eks_managed_node_group_defaults = {
     ami_type       = "BOTTLEROCKET_x86_64"
     instance_types = ["m5.large"]
-
   }
 
   eks_managed_node_groups = {
@@ -46,7 +69,6 @@ module "eks" {
   tags = local.tags
 }
 
-
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "4.0.2"
@@ -64,10 +86,11 @@ module "vpc" {
   public_subnet_tags = {
     "kubernetes.io/role/elb" = 1
     "kubernetes.io/cluster/devops-eks-portfolio-cluster" = "shared"
-
   }
 
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = 1
   }
+
+  tags = local.tags
 }
