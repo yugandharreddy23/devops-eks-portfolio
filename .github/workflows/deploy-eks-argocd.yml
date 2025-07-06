@@ -6,6 +6,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'terraform/**'
+      - 'k8s/**'
+      - '.github/**'
 
 permissions:
   id-token: write
@@ -108,11 +112,11 @@ jobs:
           ARGOCD_HOST=$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' || echo 'Not ready')
           GRAFANA_HOST=$(kubectl get svc grafana-app -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' || echo 'Not ready')
           GAME2048_HOST=$(kubectl get svc game-2048 -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' || echo 'Not ready')
-              
+
           echo "🔹 Argo CD: https://${ARGOCD_HOST}"
           echo "🔹 Grafana: http://${GRAFANA_HOST}"
           echo "🔹 2048 App: http://${GAME2048_HOST}"
-              
+
           echo "🔐 Argo CD Admin Password:"
           kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
 
